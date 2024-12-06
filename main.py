@@ -1,38 +1,53 @@
+import streamlit as st
 from tradingview_ta import TA_Handler, Interval
-from datetime import datetime, timedelta
+from datetime import datetime
 
-def get_rsi_multiple_timeframes():
-    # Khởi tạo handler cho các timeframe khác nhau
-    timeframes = [
-        Interval.INTERVAL_1_HOUR,
-        Interval.INTERVAL_4_HOURS,
-        Interval.INTERVAL_1_DAY
-    ]
-    
-    print("\n=== RSI BTCUSDT từ TradingView ===")
-    print(f"Thời gian hiện tại: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("-----------------------------------")
-    
-    for interval in timeframes:
-        handler = TA_Handler(
+# Thiết lập trang
+st.set_page_config(
+    page_title="RSI Monitor",
+    page_icon="📈"
+)
+
+# Tiêu đề
+st.title("RSI Bitcoin Monitor")
+st.write(f"Thời gian: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+
+# Container chính
+with st.container():
+    try:
+        # 1 giờ
+        handler_1h = TA_Handler(
             symbol="BTCUSDT",
             exchange="BINANCE",
             screener="crypto",
-            interval=interval,
+            interval=Interval.INTERVAL_1_HOUR
         )
+        rsi_1h = handler_1h.get_analysis().indicators["RSI"]
+        st.metric("RSI 1 giờ", f"{rsi_1h:.2f}")
         
-        try:
-            analysis = handler.get_analysis()
-            rsi = analysis.indicators["RSI"]
-            
-            # In kết quả
-            print(f"Timeframe {interval}:")
-            print(f"RSI: {rsi:.2f}")
-            print("-----------------------------------")
-            
-        except Exception as e:
-            print(f"Lỗi khi lấy dữ liệu {interval}: {str(e)}")
-            print("-----------------------------------")
+        # 4 giờ
+        handler_4h = TA_Handler(
+            symbol="BTCUSDT",
+            exchange="BINANCE",
+            screener="crypto",
+            interval=Interval.INTERVAL_4_HOURS
+        )
+        rsi_4h = handler_4h.get_analysis().indicators["RSI"]
+        st.metric("RSI 4 giờ", f"{rsi_4h:.2f}")
+        
+        # 1 ngày
+        handler_1d = TA_Handler(
+            symbol="BTCUSDT",
+            exchange="BINANCE",
+            screener="crypto",
+            interval=Interval.INTERVAL_1_DAY
+        )
+        rsi_1d = handler_1d.get_analysis().indicators["RSI"]
+        st.metric("RSI 1 ngày", f"{rsi_1d:.2f}")
+        
+    except Exception as e:
+        st.error(f"Có lỗi xảy ra: {str(e)}")
 
-# Chạy function
-get_rsi_multiple_timeframes()
+# Nút refresh
+if st.button('Làm mới dữ liệu'):
+    st.rerun()
